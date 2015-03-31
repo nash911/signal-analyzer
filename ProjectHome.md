@@ -1,0 +1,1 @@
+This is a project for extracting signal parameters, for multiple signals, from raw and noise signal data. Parameters such as amplitude, offset, frequency and relative phase difference between signal pairs can be extracted.

@@ -28,6 +28,8 @@
 
 #define NOISE_THRESHOLD 5.0
 
+using namespace std;
+
 class Signal_Analyzer
 {
 public:
@@ -46,7 +48,7 @@ public:
     double estimate_amplitude(void) const;
     double estimate_offset(void) const;
     double estimate_frequency(void) const;
-    std::vector<std::vector<double> > calculate_phase_crest(const Signal_Analyzer&) const;
+    vector<vector<double> > calculate_phase_crest(const Signal_Analyzer&) const;
 
     double get_crest_time(const unsigned int) const;
     double get_trough_time(const unsigned int) const;
@@ -60,14 +62,14 @@ private:
     unsigned int signal_id;
     double signal_mean;
 
-    std::vector<double> time;
-    std::vector<double> signal;
+    vector<double> time;
+    vector<double> signal;
 
-    std::vector<double> signal_crest;
-    std::vector<double> signal_crest_time;
+    vector<double> signal_crest;
+    vector<double> signal_crest_time;
 
-    std::vector<double> signal_trough;
-    std::vector<double> signal_trough_time;
+    vector<double> signal_trough;
+    vector<double> signal_trough_time;
 };
 
 #endif // SIGNAL_ANALYZER_H

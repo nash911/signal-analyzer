@@ -24,6 +24,7 @@ class Signal_Analyzer_List
 {
 public:
   Signal_Analyzer_List(const char*);
+  Signal_Analyzer_List(const char*, const vector<unsigned int>&);
 
   unsigned int get_num_signals(const char* const signalsFileName) const;
 
@@ -33,10 +34,11 @@ public:
   void calculate_phaseVector(void);
   void show_phase_relation(void);
   void show_signal_frequency(void);
+  void show_signal_range(void);
 
 private:
   unsigned int no_of_signals;
-  std::vector<Signal_Analyzer> S;
+  vector<Signal_Analyzer> S;
 
 };
 

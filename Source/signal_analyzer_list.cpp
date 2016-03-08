@@ -30,15 +30,15 @@ Signal_Analyzer_List::Signal_Analyzer_List(const char* signalsFileName)
 
     if(!signalsFileName)
     {
-        signalsFileName = "../signals.dat";
+        signalsFileName = "../Data/signals.dat";
     }
 
     no_of_signals = get_num_signals(signalsFileName);
     if(!no_of_signals)
     {
-        std::cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << std::endl
-                  << "Signal_Analyzer_List(const char*) method" << std::endl
-                  << "No signals found on file: "<< signalsFileName  << std::endl;
+        cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << endl
+                  << "Signal_Analyzer_List(const char*) method" << endl
+                  << "No signals found on file: "<< signalsFileName  << endl;
 
         exit(1);
     }
@@ -61,22 +61,22 @@ Signal_Analyzer_List::Signal_Analyzer_List(const char* signalsFileName)
 /// @param signalsFileName Path and name of the file containing signals data.
 /// @param signalIDList A vector containing the IDs of the signals to be extracted from the file.
 
-Signal_Analyzer_List::Signal_Analyzer_List(const char* signalsFileName, const std::vector<unsigned int>& signalIDList)
+Signal_Analyzer_List::Signal_Analyzer_List(const char* signalsFileName, const vector<unsigned int>& signalIDList)
 {
     //--Remove old output files--//
     system("exec rm -r ../Output/*");
 
     if(!signalsFileName)
     {
-        signalsFileName = "../signals.dat";
+        signalsFileName = "../Data/signals.dat";
     }
 
     no_of_signals = signalIDList.size();
     if(!no_of_signals)
     {
-        std::cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << std::endl
-                  << "Signal_Analyzer_List(const char*, , const std::vector<unsigned int>&) method" << std::endl
-                  << "No signals found on file: "<< signalsFileName  << std::endl;
+        cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << endl
+                  << "Signal_Analyzer_List(const char*, , const vector<unsigned int>&) method" << endl
+                  << "No signals found on file: "<< signalsFileName  << endl;
 
         exit(1);
     }
@@ -99,30 +99,30 @@ unsigned int Signal_Analyzer_List::get_num_signals(const char* const signalsFile
 {
     double num_signals = 0;
 
-    std::fstream inputFile;
-    inputFile.open(signalsFileName, std::ios::in);
+    fstream inputFile;
+    inputFile.open(signalsFileName, ios::in);
 
     if(!inputFile.is_open())
     {
-      std::cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << std::endl
-                << "get_num_signals(const char* const) method" << std::endl
-                << "Cannot open Parameter file: "<< signalsFileName  << std::endl;
+      cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << endl
+                << "get_num_signals(const char* const) method" << endl
+                << "Cannot open Parameter file: "<< signalsFileName  << endl;
 
       exit(1);
     }
 
-    std::string line;
+    string line;
     double dNum;
-    std::size_t found;
+    size_t found;
 
     //--Omitting lines containing '#'--//
     do
     {
         getline(inputFile, line);
         found = line.find("#");
-    }while(found != std::string::npos);
+    }while(found != string::npos);
 
-    std::stringstream ssLine(line);
+    stringstream ssLine(line);
     ssLine >> dNum;
 
     //--Extracting the number of signals on file--//
@@ -132,7 +132,7 @@ unsigned int Signal_Analyzer_List::get_num_signals(const char* const signalsFile
     }
 
 
-    std::cout << std::endl << "Number of signals on file: " << num_signals << std::endl << std::endl;
+    cout << endl << "Number of signals on file: " << num_signals << endl << endl;
     inputFile.close();
 
     return num_signals;
@@ -166,8 +166,8 @@ void Signal_Analyzer_List::filter_signal()
     //--Show the number of Crests and Troughs found, for each signal, after filtering--/
     for(unsigned int i=0; i<no_of_signals; i++)
     {
-        std::cout << "Signal_" << S[i].get_signal_id() << ": No. of Crests found = " << S[i].get_crest_time_size()
-                  << "   No. of Trough found = " << S[i].get_trough_time_size() << std::endl;
+        cout << "Signal_" << S[i].get_signal_id() << ": No. of Crests found = " << S[i].get_crest_time_size()
+                  << "   No. of Trough found = " << S[i].get_trough_time_size() << endl;
     }
 }
 
@@ -178,10 +178,10 @@ void Signal_Analyzer_List::filter_signal()
 
 void Signal_Analyzer_List::show_signal_amplitudes(void)
 {
-    std::cout << std::endl << "         Signal Amplitudes" << std::endl;
+    cout << endl << "         Signal Amplitudes" << endl;
     for(unsigned int i=0; i<no_of_signals; i++)
     {
-        std::cout << "Signal_" << S[i].get_signal_id() << ": " << S[i].estimate_amplitude() << std::endl;
+        cout << "Signal_" << S[i].get_signal_id() << ": " << S[i].estimate_amplitude() << endl;
     }
 }
 
@@ -192,10 +192,10 @@ void Signal_Analyzer_List::show_signal_amplitudes(void)
 
 void Signal_Analyzer_List::show_signal_offsets(void)
 {
-    std::cout << std::endl << "         Signal Offsets" << std::endl;
+    cout << endl << "         Signal Offsets" << endl;
     for(unsigned int i=0; i<no_of_signals; i++)
     {
-        std::cout << "Signal_" << S[i].get_signal_id() << ": " << S[i].estimate_offset() << std::endl;
+        cout << "Signal_" << S[i].get_signal_id() << ": " << S[i].estimate_offset() << endl;
     }
 }
 
@@ -207,11 +207,11 @@ void Signal_Analyzer_List::show_signal_offsets(void)
 
 void Signal_Analyzer_List::calculate_phaseVector(void)
 {
-    std::vector<std::vector<std::vector<double> > > phase;
-    std::vector<double> time;
+    vector<vector<vector<double> > > phase;
+    vector<double> time;
 
-    std::fstream phaseFile_180;
-    std::fstream phaseFile_360;
+    fstream phaseFile_180;
+    fstream phaseFile_360;
 
     //--Calculate phase difference between signals, for every pair of signals.
     for(unsigned int i=0; i<no_of_signals-1; i++)
@@ -222,15 +222,15 @@ void Signal_Analyzer_List::calculate_phaseVector(void)
         }
     }
 
-    phaseFile_180.open("../Output/phase180.dat", std::ios::out);
-    phaseFile_360.open("../Output/phase360.dat", std::ios::out);
+    phaseFile_180.open("../Output/phase180.dat", ios::out);
+    phaseFile_360.open("../Output/phase360.dat", ios::out);
 
     //--Accumulate all unique time values from all the phase vectors.
     for(unsigned int i=0; i<phase.size(); i++)
     {
         for(unsigned int j=0; j<phase[i].size(); j++)
         {
-            if(std::find(time.begin(), time.end(), phase[i][j][0])==time.end())
+            if(find(time.begin(), time.end(), phase[i][j][0])==time.end())
             {
                 time.push_back(phase[i][j][0]);
             }
@@ -238,7 +238,7 @@ void Signal_Analyzer_List::calculate_phaseVector(void)
     }
 
     //--Sort the time vector in accending order.
-    std::sort(time.begin(), time.end());
+    sort(time.begin(), time.end());
 
     //--Search the phase vectors and store the phase value closest to each time value, in phase graph file.
     for(unsigned int n=0; n<time.size(); n++)
@@ -260,8 +260,8 @@ void Signal_Analyzer_List::calculate_phaseVector(void)
             }
         }
 
-        phaseFile_180 << std::endl;
-        phaseFile_360 << std::endl;
+        phaseFile_180 << endl;
+        phaseFile_360 << endl;
     }
 
     phaseFile_180.close();
@@ -278,15 +278,15 @@ void Signal_Analyzer_List::show_phase_relation(void)
 {
     double avg_phase_diff;
 
-    std::cout << std::endl << "         Phase difference between pairs of signals (-180°, 180°]" << std::endl;
+    cout << endl << "         Phase difference between pairs of signals (-180°, 180°]" << endl;
 
     //--Calculate phase difference between signals, for every pair of signals.
     for(unsigned int i=0; i<no_of_signals-1; i++)
     {
         for(unsigned int j=i+1; j<no_of_signals; j++)
         {
-            std::vector<std::vector<double> > phaseVector;
-            std::vector<double> phaseRelation;
+            vector<vector<double> > phaseVector;
+            vector<double> phaseRelation;
 
             phaseVector = S[i].calculate_phase_crest(S[j]);
 
@@ -294,10 +294,10 @@ void Signal_Analyzer_List::show_phase_relation(void)
             {
                 phaseRelation.push_back(phaseVector[k][1]);
             }
-            avg_phase_diff = std::accumulate(phaseRelation.begin(), phaseRelation.end(), 0.0)/phaseRelation.size();
+            avg_phase_diff = accumulate(phaseRelation.begin(), phaseRelation.end(), 0.0)/phaseRelation.size();
 
-            std::cout << "Signal_" << S[i].get_signal_id() << " AND Signal_"
-                      << S[j].get_signal_id() << ": " << avg_phase_diff << "°" << std::endl;
+            cout << "Signal_" << S[i].get_signal_id() << " AND Signal_"
+                      << S[j].get_signal_id() << ": " << avg_phase_diff << "°" << endl;
         }
     }
 
@@ -310,14 +310,34 @@ void Signal_Analyzer_List::show_phase_relation(void)
 
 void Signal_Analyzer_List::show_signal_frequency(void)
 {
-    std::vector<double> frequency;
+    vector<double> frequency;
     double avg_freq;
 
     for(unsigned int i=0; i<no_of_signals; i++)
     {
         frequency.push_back(S[i].estimate_frequency());
     }
-    avg_freq = std::accumulate(frequency.begin(), frequency.end(), 0.0)/frequency.size();
+    avg_freq = accumulate(frequency.begin(), frequency.end(), 0.0)/frequency.size();
 
-    std::cout << std::endl << "Signal Frequency: " << avg_freq << std::endl;
+    cout << endl << "Signal Frequency: " << avg_freq << endl;
+}
+
+
+// void show_signal_range(void) method
+
+/// Estimates and displays oscillation range of all the signals on the list.
+
+void Signal_Analyzer_List::show_signal_range(void)
+{
+    double amplitude;
+    double offset;
+
+    cout << endl << "         Signal Range" << endl;
+    for(unsigned int i=0; i<no_of_signals; i++)
+    {
+        amplitude = S[i].estimate_amplitude();
+        offset = S[i].estimate_offset();
+
+        cout << "Signal_" << S[i].get_signal_id() << ": [" << (amplitude + offset) << ":" << (-amplitude + offset) << "]" << endl;
+    }
 }

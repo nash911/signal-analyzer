@@ -31,7 +31,7 @@ Signal_Analyzer::Signal_Analyzer(const char* const fileName, const unsigned int 
   extract_signal_data_from_file(fileName);
 
   //--Calculate signal mean--//
-  double sum = std::accumulate(signal.begin(), signal.end(), 0.0);
+  double sum = accumulate(signal.begin(), signal.end(), 0.0);
   signal_mean = sum / signal.size();
 
   select_signal_crest();
@@ -46,21 +46,21 @@ Signal_Analyzer::Signal_Analyzer(const char* const fileName, const unsigned int 
 
 void Signal_Analyzer::extract_signal_data_from_file(const char* const fileName)
 {
-  std::fstream inputFile;
+  fstream inputFile;
 
-  inputFile.open(fileName, std::ios::in);
+  inputFile.open(fileName, ios::in);
   if(!inputFile.is_open())
   {
-    std::cerr << "SignalAnalyzer Error: SignalAnalyzer class." << std::endl
-              << "extract_signal_data_from_file(const char* const) method." << std::endl
-              << "Cannot open Parameter file: "<< fileName  << std::endl;
+    cerr << "SignalAnalyzer Error: SignalAnalyzer class." << endl
+              << "extract_signal_data_from_file(const char* const) method." << endl
+              << "Cannot open Parameter file: "<< fileName  << endl;
 
     exit(1);
   }
 
-  std::string line;
+  string line;
   double dNum;
-  std::size_t found;
+  size_t found;
 
   //--Extracting the time and signal data from the file--//
   do
@@ -70,9 +70,9 @@ void Signal_Analyzer::extract_signal_data_from_file(const char* const fileName)
     {
       getline(inputFile, line);
       found = line.find("#");
-    }while(found != std::string::npos);
+    }while(found != string::npos);
 
-    std::stringstream ssLine;
+    stringstream ssLine;
     ssLine << line;
 
     ssLine >> dNum;
@@ -210,15 +210,15 @@ void Signal_Analyzer::select_signal_crest(void)
   }
 
   //--Save selected crest data in file--//
-  std::fstream outputFile;
-  std::stringstream ss;
+  fstream outputFile;
+  stringstream ss;
 
   ss << "../Output/S" << signal_id << "_crest.dat";
-  outputFile.open(ss.str().c_str(), std::ios::out);
+  outputFile.open(ss.str().c_str(), ios::out);
 
   for(unsigned int i=0; i<signal_crest.size(); i++)
   {
-    outputFile << signal_crest_time[i] << " " << signal_crest[i] << std::endl;
+    outputFile << signal_crest_time[i] << " " << signal_crest[i] << endl;
   }
   outputFile.close();
 }
@@ -247,15 +247,15 @@ void Signal_Analyzer::select_signal_trough(void)
   }
 
   //--Save selected trough data in file--//
-  std::fstream outputFile;
-  std::stringstream ss;
+  fstream outputFile;
+  stringstream ss;
 
   ss << "../Output/S" << signal_id << "_trough.dat";
-  outputFile.open(ss.str().c_str(), std::ios::out);
+  outputFile.open(ss.str().c_str(), ios::out);
 
   for(unsigned int i=0; i<signal_trough.size(); i++)
   {
-    outputFile << signal_trough_time[i] << " " << signal_trough[i] << std::endl;
+    outputFile << signal_trough_time[i] << " " << signal_trough[i] << endl;
   }
   outputFile.close();
 }
@@ -275,8 +275,8 @@ void Signal_Analyzer::filter_signal_crest(const Signal_Analyzer& ref_sig)
   //--Weeding out noisy signal crest by selecting the highest signal crest between two reference signal ref_sig's crests--//
   for(unsigned int i=0; i<ref_sig.get_crest_time_size()-1; i++)
   {
-    std::vector<double> multiple_crests_time;
-    std::vector<unsigned int> crest_index;
+    vector<double> multiple_crests_time;
+    vector<unsigned int> crest_index;
 
     //--Collect all the signal crests between two concurrent ref_sig crests--//
     for(unsigned int j=0; j<signal_crest_time.size(); j++)
@@ -323,7 +323,7 @@ void Signal_Analyzer::filter_signal_crest(const Signal_Analyzer& ref_sig)
 
             if(signal_crest.size() != signal_crest_time.size())
             {
-              std::cout << std::endl << std::endl << " ERROR: SIZE OF signal_crest and signal_crest_time DO NOT MATCH." << std::endl;
+              cout << endl << endl << " ERROR: SIZE OF signal_crest and signal_crest_time DO NOT MATCH." << endl;
               exit(0);
             }
             break;
@@ -334,15 +334,15 @@ void Signal_Analyzer::filter_signal_crest(const Signal_Analyzer& ref_sig)
   }
 
   //--Save filtered crest data in file.
-  std::fstream outputFile;
-  std::stringstream ss;
+  fstream outputFile;
+  stringstream ss;
 
   ss << "../Output/S" << signal_id << "_filtered_crest.dat";
-  outputFile.open(ss.str().c_str(), std::ios::out);
+  outputFile.open(ss.str().c_str(), ios::out);
 
   for(unsigned int i=0; i<signal_crest.size(); i++)
   {
-    outputFile << signal_crest_time[i] << " " << signal_crest[i] << std::endl;
+    outputFile << signal_crest_time[i] << " " << signal_crest[i] << endl;
   }
   outputFile.close();
 }
@@ -362,8 +362,8 @@ void Signal_Analyzer::filter_signal_trough(const Signal_Analyzer& ref_sig)
   //--Weeding out noisy signal troughs, by selecting the highest signal trough between two reference signal ref_sig's troughs--//
   for(unsigned int i=0; i<ref_sig.get_trough_time_size()-1; i++)
   {
-    std::vector<double> multiple_troughs_time;
-    std::vector<unsigned int> trough_index;
+    vector<double> multiple_troughs_time;
+    vector<unsigned int> trough_index;
 
     //--Collect all the signal troughs between two concurrent ref_sig troughs--//
     for(unsigned int j=0; j<signal_trough_time.size(); j++)
@@ -410,7 +410,7 @@ void Signal_Analyzer::filter_signal_trough(const Signal_Analyzer& ref_sig)
 
             if(signal_trough.size() != signal_trough_time.size())
             {
-              std::cout << std::endl << std::endl << " ERROR: SIZE OF signal_trough and signal_trough_time DO NOT MATCH." << std::endl;
+              cout << endl << endl << " ERROR: SIZE OF signal_trough and signal_trough_time DO NOT MATCH." << endl;
               exit(0);
             }
             break;
@@ -421,15 +421,15 @@ void Signal_Analyzer::filter_signal_trough(const Signal_Analyzer& ref_sig)
   }
 
   //--Save filtered trough data in file.
-  std::fstream outputFile;
-  std::stringstream ss;
+  fstream outputFile;
+  stringstream ss;
 
   ss << "../Output/S" << signal_id << "_filtered_trough.dat";
-  outputFile.open(ss.str().c_str(), std::ios::out);
+  outputFile.open(ss.str().c_str(), ios::out);
 
   for(unsigned int i=0; i<signal_trough.size(); i++)
   {
-    outputFile << signal_trough_time[i] << " " << signal_trough[i] << std::endl;
+    outputFile << signal_trough_time[i] << " " << signal_trough[i] << endl;
   }
   outputFile.close();
 }
@@ -447,8 +447,8 @@ double Signal_Analyzer::estimate_amplitude(void) const
     double trough_avg;
     double offset;
 
-    crest_avg = std::accumulate(signal_crest.begin(), signal_crest.end(), 0.0)/signal_crest.size();
-    trough_avg = std::accumulate(signal_trough.begin(), signal_trough.end(), 0.0)/signal_trough.size();
+    crest_avg = accumulate(signal_crest.begin(), signal_crest.end(), 0.0)/signal_crest.size();
+    trough_avg = accumulate(signal_trough.begin(), signal_trough.end(), 0.0)/signal_trough.size();
 
     offset = (crest_avg+trough_avg)/2.0;
     amplitude_avg = crest_avg - offset;
@@ -468,8 +468,8 @@ double Signal_Analyzer::estimate_offset(void) const
     double crest_avg;
     double trough_avg;
 
-    crest_avg = std::accumulate(signal_crest.begin(), signal_crest.end(), 0.0)/signal_crest.size();
-    trough_avg = std::accumulate(signal_trough.begin(), signal_trough.end(), 0.0)/signal_trough.size();
+    crest_avg = accumulate(signal_crest.begin(), signal_crest.end(), 0.0)/signal_crest.size();
+    trough_avg = accumulate(signal_trough.begin(), signal_trough.end(), 0.0)/signal_trough.size();
 
     offset_avg = (crest_avg+trough_avg)/2.0;
 
@@ -486,7 +486,7 @@ double Signal_Analyzer::estimate_offset(void) const
 
 double Signal_Analyzer::estimate_frequency(void) const
 {
-    std::vector<double> freqVec;
+    vector<double> freqVec;
     double period;
     double freq_avg;
 
@@ -506,12 +506,12 @@ double Signal_Analyzer::estimate_frequency(void) const
         freqVec.push_back(1.0/period);
     }
 
-    freq_avg = std::accumulate(freqVec.begin(), freqVec.end(), 0.0)/freqVec.size();
+    freq_avg = accumulate(freqVec.begin(), freqVec.end(), 0.0)/freqVec.size();
     return (freq_avg);
 }
 
 
-// std::vector<std::vector<double> > calculate_phase_crest(const Signal_Analyzer&) method
+// vector<vector<double> > calculate_phase_crest(const Signal_Analyzer&) method
 
 /// This method returns the phase difference between the signal and the reference signal.
 /// The format is a nx3 Matrix (2D Vector).
@@ -522,10 +522,10 @@ double Signal_Analyzer::estimate_frequency(void) const
 /// </ul>
 /// @param ref_sig A SignalAnalyzer object used as reference to calculate the signal's phase W.R.T the reference signal.
 
-std::vector<std::vector<double> > Signal_Analyzer::calculate_phase_crest(const Signal_Analyzer& ref_sig) const
+vector<vector<double> > Signal_Analyzer::calculate_phase_crest(const Signal_Analyzer& ref_sig) const
 {
-  std::vector<std::vector<double> > phase;
-  std::vector<double> phase_individual(3);
+  vector<vector<double> > phase;
+  vector<double> phase_individual(3);
 
   double period_start_time;
   double period_end_time;
@@ -587,9 +587,9 @@ double Signal_Analyzer::get_crest_time(const unsigned int i) const
 {
   if(i >= signal_crest_time.size())
   {
-    std::cerr << "SignalAnalyzer Error: SignalAnalyzer class." << std::endl
-              << "double get_crest_time(const unsigned int) method" << std::endl
-              << i << " should be < signal_crest_time.size(): "<< signal_crest_time.size()  << std::endl;
+    cerr << "SignalAnalyzer Error: SignalAnalyzer class." << endl
+              << "double get_crest_time(const unsigned int) method" << endl
+              << i << " should be < signal_crest_time.size(): "<< signal_crest_time.size()  << endl;
 
     exit(1);
   }
@@ -609,9 +609,9 @@ double Signal_Analyzer::get_trough_time(const unsigned int i) const
 {
   if(i >= signal_trough_time.size())
   {
-    std::cerr << "SignalAnalyzer Error: SignalAnalyzer class." << std::endl
-              << "double get_trough_time(const unsigned int) method" << std::endl
-              << i << " should be < signal_trough_time.size(): "<< signal_trough_time.size()  << std::endl;
+    cerr << "SignalAnalyzer Error: SignalAnalyzer class." << endl
+              << "double get_trough_time(const unsigned int) method" << endl
+              << i << " should be < signal_trough_time.size(): "<< signal_trough_time.size()  << endl;
 
     exit(1);
   }

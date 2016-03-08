@@ -19,15 +19,16 @@ Following are the constraints that input signals on data file must follow,
 
 Following are the features of the system,
 * Can accurately estimate amplitude, offset, relative phase difference and frequency of clean signals with an accuracy of three decimal places.
-* Can produce a vector of relative phase difference, over time, between a pair of signals, containing the change is phase difference between a pair, over time.
+* Can produce a vector of relative phase-difference, between a pair of signals, over time.
 * Can produce output files containing phase difference vector data in plottable format, in folder 'root/Output/'.
 
 == Build and execute ==
 Open a terminal and go to the project root directory, and then run the following,
-1. cd BUILD
-2. cmake ..
-3. make
-4. ./SignalAnalyzer
+1. mkdir BUILD
+2. cd BUILD
+3. cmake ..
+4. make
+5. ./SignalAnalyzer
 
   A file, containing signal data, can be provided as a parameter at command line. By default the file 'root/Data/signals.dat' is taken as input.
 
@@ -61,3 +62,16 @@ Amplitude: 40.0°
 Offset: 20.0°
 Phase: 1.0°
 Frequency: 1.2345678
+
+==Output==
+1. Displayed on the terminal:
+  * Number of signals found on the input file.
+  * Number of signal crests and troughs of each signal.
+  * Average amplitude of all the signals.
+  * Average offset of all the signals.
+  * Range (Crest and trough on the amplitude-axis) of each signal.
+  * Phase-difference between signal pairs.
+
+2. A plottable '.dat' file, containing phase-difference between signal pairs is generated and saved in 'root/Output/' folder.
+
+

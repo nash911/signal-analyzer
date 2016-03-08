@@ -29,10 +29,10 @@ Open a terminal and go to the project root directory, and then run the following
 3. make
 4. ./SignalAnalyzer
 
-  A file, containing signal data, can be provided as a parameter at command line. By default the file 'root/signals.dat' is taken as input.
+  A file, containing signal data, can be provided as a parameter at command line. By default the file 'root/Data/signals.dat' is taken as input.
 
 ==Default input file==
-The default file 'root/signals.dat' contains four sinusoidal signals that were generated at a time resolution of 0.001 s, and with the following parameters respectively,
+The default file 'root/Data/signals.dat' contains four sinusoidal signals that were generated at a time resolution of 0.001 s, and with the following parameters respectively,
 
 Signal 1
 ----------

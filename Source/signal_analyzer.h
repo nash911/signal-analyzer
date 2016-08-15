@@ -25,6 +25,7 @@
 #include <math.h>
 #include <numeric>
 #include <algorithm>
+//#include <cstdio>
 
 #define NOISE_THRESHOLD 5.0
 
@@ -35,6 +36,7 @@ class Signal_Analyzer
 public:
     Signal_Analyzer(const char* const, const unsigned int);
     void extract_signal_data_from_file(const char* const);
+    void crop_length(const double, const double);
 
     bool is_previous_signal_lower(const unsigned int) const;
     bool is_previous_signal_higher(const unsigned int) const;

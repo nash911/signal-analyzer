@@ -26,16 +26,16 @@
 
 Signal_Analyzer::Signal_Analyzer(const char* const fileName, const unsigned int sig_id)
 {
-  signal_id = sig_id;
+    signal_id = sig_id;
 
-  extract_signal_data_from_file(fileName);
+    extract_signal_data_from_file(fileName);
 
-  //--Calculate signal mean--//
-  double sum = accumulate(signal.begin(), signal.end(), 0.0);
-  signal_mean = sum / signal.size();
+    //--Calculate signal mean--//
+    double sum = accumulate(signal.begin(), signal.end(), 0.0);
+    signal_mean = sum / signal.size();
 
-  select_signal_crest();
-  select_signal_trough();
+    select_signal_crest();
+    select_signal_trough();
 }
 
 
@@ -46,46 +46,137 @@ Signal_Analyzer::Signal_Analyzer(const char* const fileName, const unsigned int 
 
 void Signal_Analyzer::extract_signal_data_from_file(const char* const fileName)
 {
-  fstream inputFile;
+    fstream inputFile;
 
-  inputFile.open(fileName, ios::in);
-  if(!inputFile.is_open())
-  {
-    cerr << "SignalAnalyzer Error: SignalAnalyzer class." << endl
-              << "extract_signal_data_from_file(const char* const) method." << endl
-              << "Cannot open Parameter file: "<< fileName  << endl;
+    inputFile.open(fileName, ios::in);
+    if(!inputFile.is_open())
+    {
+        cerr << "SignalAnalyzer Error: SignalAnalyzer class." << endl
+             << "extract_signal_data_from_file(const char* const) method." << endl
+             << "Cannot open Parameter file: "<< fileName  << endl;
 
-    exit(1);
-  }
+        exit(1);
+    }
 
-  string line;
-  double dNum;
-  size_t found;
+    string line;
+    double dNum;
+    size_t found;
 
-  //--Extracting the time and signal data from the file--//
-  do
-  {
-    //--Omitting lines containing '#'--//
+    //--Extracting the time and signal data from the file--//
     do
     {
-      getline(inputFile, line);
-      found = line.find("#");
-    }while(found != string::npos);
+        //--Omitting lines containing '#'--//
+        do
+        {
+            getline(inputFile, line);
+            found = line.find("#");
+        }while(found != string::npos);
 
-    stringstream ssLine;
-    ssLine << line;
+        stringstream ssLine;
+        ssLine << line;
 
-    ssLine >> dNum;
-    time.push_back(dNum);
+        ssLine >> dNum;
+        time.push_back(dNum);
 
-    for(unsigned int i=0; i<signal_id; i++)
+        for(unsigned int i=0; i<signal_id; i++)
+        {
+            ssLine >> dNum;
+        }
+        signal.push_back(dNum);
+
+    }while(!inputFile.eof());
+    inputFile.close();
+}
+
+
+// void crop_length(const double, const double)
+
+/// This method crops a signal by removing all crests and troughs outside the limit [lower_limit:upper_limit].
+/// @param lower_limit Time value below which the signal needs to be cropped.
+/// @param upper_limit Time value above which the signal needs to be cropped.
+
+void Signal_Analyzer::crop_length(const double lower_limit, const double upper_limit)
+{
+    bool crest_updated = false;
+    bool trough_updated = false;
+
+    //cout << endl << "Signal_" << signal_id << endl;
+
+    //--Remove crests with t < lower_limit--//
+    while(signal_crest_time.front() < lower_limit)
     {
-      ssLine >> dNum;
-    }
-    signal.push_back(dNum);
+        crest_updated = true;
+        //cout << " Removed Crest: " << signal_crest.front() << "  @ t: " << signal_crest_time.front() << endl;
 
-  }while(!inputFile.eof());
-  inputFile.close();
+        signal_crest.erase(signal_crest.begin());
+        signal_crest_time.erase(signal_crest_time.begin());
+    }
+
+    //--Remove crests with t > upper_limit--//
+    while(signal_crest_time.back() > upper_limit)
+    {
+        crest_updated = true;
+        //cout << " Removed Crest: " << signal_crest.back() << "  @ t: " << signal_crest_time.back() << endl;
+
+        signal_crest.pop_back();
+        signal_crest_time.pop_back();
+    }
+
+    //--Remove troughs with t < lower_limit--//
+    while(signal_trough_time.front() < lower_limit)
+    {
+        trough_updated = true;
+        //cout << " Removed Trough: " << signal_trough.front() << "  @ t: " << signal_trough_time.front() << endl;
+
+        signal_trough.erase(signal_trough.begin());
+        signal_trough_time.erase(signal_trough_time.begin());
+    }
+
+    //--Remove troughs with t > upper_limit--//
+    while(signal_trough_time.back() > upper_limit)
+    {
+        trough_updated = true;
+        //cout << " Removed Trough: " << signal_trough.back() << "  @ t: " << signal_trough_time.back() << endl;
+
+        signal_trough.pop_back();
+        signal_trough_time.pop_back();
+    }
+
+    //cout << endl;
+
+    if(crest_updated)
+    {
+        //--Save updated crest data in file.
+        fstream outputFile;
+        stringstream ss;
+
+        ss << "../Output/S" << signal_id << "_filtered_crest.dat";
+        remove(ss.str().c_str());
+        outputFile.open(ss.str().c_str(), ios::out);
+
+        for(unsigned int i=0; i<signal_crest.size(); i++)
+        {
+            outputFile << signal_crest_time[i] << " " << signal_crest[i] << endl;
+        }
+        outputFile.close();
+    }
+
+    if(trough_updated)
+    {
+        //--Save filtered trough data in file.
+        fstream outputFile;
+        stringstream ss;
+
+        ss << "../Output/S" << signal_id << "_filtered_trough.dat";
+        remove(ss.str().c_str());
+        outputFile.open(ss.str().c_str(), ios::out);
+
+        for(unsigned int i=0; i<signal_trough.size(); i++)
+        {
+            outputFile << signal_trough_time[i] << " " << signal_trough[i] << endl;
+        }
+        outputFile.close();
+    }
 }
 
 
@@ -99,42 +190,42 @@ void Signal_Analyzer::extract_signal_data_from_file(const char* const fileName)
 
 bool Signal_Analyzer::is_previous_signal_lower(const unsigned int index) const
 {
-  if(index != 1)
-  {
-    if(signal[index] == signal[index-1])
+    if(index != 1)
     {
-      return(is_previous_signal_lower(index-1));
+        if(signal[index] == signal[index-1])
+        {
+            return(is_previous_signal_lower(index-1));
+        }
+        else if(signal[index] > signal[index-1])
+        {
+            if(fabs(signal[index]-signal[index-1]) < NOISE_THRESHOLD)
+            {
+                return(true);
+            }
+            else
+            {
+                //--If noise data detected, then continue searching by stepping over the noise data point--//
+                return(is_previous_signal_lower(index-2));
+            }
+        }
+        else if(signal[index] < signal[index-1])
+        {
+            return(false);
+        }
     }
-    else if(signal[index] > signal[index-1])
+    else
     {
-      if(fabs(signal[index]-signal[index-1]) < NOISE_THRESHOLD)
-      {
-        return(true);
-      }
-      else
-      {
-        //--If noise data detected, then continue searching by stepping over the noise data point--//
-        return(is_previous_signal_lower(index-2));
-      }
+        if(signal[index] > signal[index-1])
+        {
+            return(true);
+        }
+        else if(signal[index] <= signal[index-1])
+        {
+            return(false);
+        }
     }
-    else if(signal[index] < signal[index-1])
-    {
-      return(false);
-    }
-  }
-  else
-  {
-    if(signal[index] > signal[index-1])
-    {
-      return(true);
-    }
-    else if(signal[index] <= signal[index-1])
-    {
-      return(false);
-    }
-  }
 
-  return false;
+    return false;
 }
 
 
@@ -148,42 +239,42 @@ bool Signal_Analyzer::is_previous_signal_lower(const unsigned int index) const
 
 bool Signal_Analyzer::is_previous_signal_higher(const unsigned int index) const
 {
-  if(index != 1)
-  {
-    if(signal[index] == signal[index-1])
+    if(index != 1)
     {
-      return(is_previous_signal_higher(index-1));
+        if(signal[index] == signal[index-1])
+        {
+            return(is_previous_signal_higher(index-1));
+        }
+        else if(signal[index] < signal[index-1])
+        {
+            if(fabs(signal[index]-signal[index-1]) < NOISE_THRESHOLD)
+            {
+                return(true);
+            }
+            else
+            {
+                //--If noise data detected, then continue searching by stepping over the noise data point--//
+                return(is_previous_signal_higher(index-2));
+            }
+        }
+        else if(signal[index] > signal[index-1])
+        {
+            return(false);
+        }
     }
-    else if(signal[index] < signal[index-1])
+    else
     {
-      if(fabs(signal[index]-signal[index-1]) < NOISE_THRESHOLD)
-      {
-        return(true);
-      }
-      else
-      {
-        //--If noise data detected, then continue searching by stepping over the noise data point--//
-        return(is_previous_signal_higher(index-2));
-      }
+        if(signal[index] < signal[index-1])
+        {
+            return(true);
+        }
+        else if(signal[index] >= signal[index-1])
+        {
+            return(false);
+        }
     }
-    else if(signal[index] > signal[index-1])
-    {
-      return(false);
-    }
-  }
-  else
-  {
-    if(signal[index] < signal[index-1])
-    {
-      return(true);
-    }
-    else if(signal[index] >= signal[index-1])
-    {
-      return(false);
-    }
-  }
 
-  return false;
+    return false;
 }
 
 
@@ -193,34 +284,34 @@ bool Signal_Analyzer::is_previous_signal_higher(const unsigned int index) const
 
 void Signal_Analyzer::select_signal_crest(void)
 {
-  for(unsigned int i=1; i<time.size()-1; i++)
-  {
-    //--Naive noise filter
-    if(signal[i] > signal_mean && (fabs(signal[i]-signal[i-1])<=NOISE_THRESHOLD && fabs(signal[i]-signal[i+1])<=NOISE_THRESHOLD))
+    for(unsigned int i=1; i<time.size()-1; i++)
     {
-      if(signal[i] > signal[i+1])
-      {
-        if(is_previous_signal_lower(i))
+        //--Naive noise filter
+        if(signal[i] > signal_mean && (fabs(signal[i]-signal[i-1])<=NOISE_THRESHOLD && fabs(signal[i]-signal[i+1])<=NOISE_THRESHOLD))
         {
-          signal_crest.push_back(signal[i]);
-          signal_crest_time.push_back(time[i]);
+            if(signal[i] > signal[i+1])
+            {
+                if(is_previous_signal_lower(i))
+                {
+                    signal_crest.push_back(signal[i]);
+                    signal_crest_time.push_back(time[i]);
+                }
+            }
         }
-      }
     }
-  }
 
-  //--Save selected crest data in file--//
-  fstream outputFile;
-  stringstream ss;
+    //--Save selected crest data in file--//
+    fstream outputFile;
+    stringstream ss;
 
-  ss << "../Output/S" << signal_id << "_crest.dat";
-  outputFile.open(ss.str().c_str(), ios::out);
+    ss << "../Output/S" << signal_id << "_crest.dat";
+    outputFile.open(ss.str().c_str(), ios::out);
 
-  for(unsigned int i=0; i<signal_crest.size(); i++)
-  {
-    outputFile << signal_crest_time[i] << " " << signal_crest[i] << endl;
-  }
-  outputFile.close();
+    for(unsigned int i=0; i<signal_crest.size(); i++)
+    {
+        outputFile << signal_crest_time[i] << " " << signal_crest[i] << endl;
+    }
+    outputFile.close();
 }
 
 
@@ -230,34 +321,34 @@ void Signal_Analyzer::select_signal_crest(void)
 
 void Signal_Analyzer::select_signal_trough(void)
 {
-  for(unsigned int i=1; i<time.size()-1; i++)
-  {
-    //--Naive noise filter
-    if(signal[i] < signal_mean && (fabs(signal[i]-signal[i-1])<=NOISE_THRESHOLD && fabs(signal[i]-signal[i+1])<=NOISE_THRESHOLD))
+    for(unsigned int i=1; i<time.size()-1; i++)
     {
-      if(signal[i] < signal[i+1])
-      {
-        if(is_previous_signal_higher(i))
+        //--Naive noise filter
+        if(signal[i] < signal_mean && (fabs(signal[i]-signal[i-1])<=NOISE_THRESHOLD && fabs(signal[i]-signal[i+1])<=NOISE_THRESHOLD))
         {
-          signal_trough.push_back(signal[i]);
-          signal_trough_time.push_back(time[i]);
+            if(signal[i] < signal[i+1])
+            {
+                if(is_previous_signal_higher(i))
+                {
+                    signal_trough.push_back(signal[i]);
+                    signal_trough_time.push_back(time[i]);
+                }
+            }
         }
-      }
     }
-  }
 
-  //--Save selected trough data in file--//
-  fstream outputFile;
-  stringstream ss;
+    //--Save selected trough data in file--//
+    fstream outputFile;
+    stringstream ss;
 
-  ss << "../Output/S" << signal_id << "_trough.dat";
-  outputFile.open(ss.str().c_str(), ios::out);
+    ss << "../Output/S" << signal_id << "_trough.dat";
+    outputFile.open(ss.str().c_str(), ios::out);
 
-  for(unsigned int i=0; i<signal_trough.size(); i++)
-  {
-    outputFile << signal_trough_time[i] << " " << signal_trough[i] << endl;
-  }
-  outputFile.close();
+    for(unsigned int i=0; i<signal_trough.size(); i++)
+    {
+        outputFile << signal_trough_time[i] << " " << signal_trough[i] << endl;
+    }
+    outputFile.close();
 }
 
 
@@ -269,82 +360,82 @@ void Signal_Analyzer::select_signal_trough(void)
 
 void Signal_Analyzer::filter_signal_crest(const Signal_Analyzer& ref_sig)
 {
-  double temp_time;
-  double temp_index;
+    double temp_time;
+    double temp_index;
 
-  //--Weeding out noisy signal crest by selecting the highest signal crest between two reference signal ref_sig's crests--//
-  for(unsigned int i=0; i<ref_sig.get_crest_time_size()-1; i++)
-  {
-    vector<double> multiple_crests_time;
-    vector<unsigned int> crest_index;
-
-    //--Collect all the signal crests between two concurrent ref_sig crests--//
-    for(unsigned int j=0; j<signal_crest_time.size(); j++)
+    //--Weeding out noisy signal crest by selecting the highest signal crest between two reference signal ref_sig's crests--//
+    for(unsigned int i=0; i<ref_sig.get_crest_time_size()-1; i++)
     {
-      if(ref_sig.get_crest_time(i) <= signal_crest_time[j] && signal_crest_time[j] <= ref_sig.get_crest_time(i+1))
-      {
-        multiple_crests_time.push_back(signal_crest_time[j]);
-        crest_index.push_back(j);
-      }
-      else if(signal_crest_time[j] > ref_sig.get_crest_time(i+1))
-      {
-        break;
-      }
-    }
+        vector<double> multiple_crests_time;
+        vector<unsigned int> crest_index;
 
-    //--If there exists more than one signal crest between the current pair of adjacent ref_sig crests,
-    //--then sort them in assending order, based on the height of the signal crest--//
-    if(multiple_crests_time.size()>1)
-    {
-      for(unsigned int k=0; k<crest_index.size()-1; k++)
-      {
-        if(signal_crest[crest_index[k]] >= signal_crest[crest_index[k+1]])
+        //--Collect all the signal crests between two concurrent ref_sig crests--//
+        for(unsigned int j=0; j<signal_crest_time.size(); j++)
         {
-          temp_time = multiple_crests_time[k];
-          multiple_crests_time[k] = multiple_crests_time[k+1];
-          multiple_crests_time[k+1] = temp_time;
-
-          temp_index = crest_index[k];
-          crest_index[k] = crest_index[k+1];
-          crest_index[k+1] = temp_index;
-        }
-      }
-
-      //--Delete all but the highest signal crest that exist between the current pair of adjacent ref_sig crests--//
-      for(unsigned int m=0; m<crest_index.size()-1; m++)
-      {
-        for(unsigned int n=0; n<signal_crest_time.size(); n++)
-        {
-          if(signal_crest_time[n] == multiple_crests_time[m])
-          {
-            //--Delete both the non-highest signal crest and it's time, in the respective vectors--//
-            signal_crest.erase(signal_crest.begin() + n);
-            signal_crest_time.erase(signal_crest_time.begin() + n);
-
-            if(signal_crest.size() != signal_crest_time.size())
+            if(ref_sig.get_crest_time(i) <= signal_crest_time[j] && signal_crest_time[j] <= ref_sig.get_crest_time(i+1))
             {
-              cout << endl << endl << " ERROR: SIZE OF signal_crest and signal_crest_time DO NOT MATCH." << endl;
-              exit(0);
+                multiple_crests_time.push_back(signal_crest_time[j]);
+                crest_index.push_back(j);
             }
-            break;
-          }
+            else if(signal_crest_time[j] > ref_sig.get_crest_time(i+1))
+            {
+                break;
+            }
         }
-      }
+
+        //--If there exists more than one signal crest between the current pair of adjacent ref_sig crests,
+        //--then sort them in assending order, based on the height of the signal crest--//
+        if(multiple_crests_time.size()>1)
+        {
+            for(unsigned int k=0; k<crest_index.size()-1; k++)
+            {
+                if(signal_crest[crest_index[k]] >= signal_crest[crest_index[k+1]])
+                {
+                    temp_time = multiple_crests_time[k];
+                    multiple_crests_time[k] = multiple_crests_time[k+1];
+                    multiple_crests_time[k+1] = temp_time;
+
+                    temp_index = crest_index[k];
+                    crest_index[k] = crest_index[k+1];
+                    crest_index[k+1] = temp_index;
+                }
+            }
+
+            //--Delete all but the highest signal crest that exist between the current pair of adjacent ref_sig crests--//
+            for(unsigned int m=0; m<crest_index.size()-1; m++)
+            {
+                for(unsigned int n=0; n<signal_crest_time.size(); n++)
+                {
+                    if(signal_crest_time[n] == multiple_crests_time[m])
+                    {
+                        //--Delete both the non-highest signal crest and it's time, in the respective vectors--//
+                        signal_crest.erase(signal_crest.begin() + n);
+                        signal_crest_time.erase(signal_crest_time.begin() + n);
+
+                        if(signal_crest.size() != signal_crest_time.size())
+                        {
+                            cout << endl << endl << " ERROR: SIZE OF signal_crest and signal_crest_time DO NOT MATCH." << endl;
+                            exit(0);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
     }
-  }
 
-  //--Save filtered crest data in file.
-  fstream outputFile;
-  stringstream ss;
+    //--Save filtered crest data in file.
+    fstream outputFile;
+    stringstream ss;
 
-  ss << "../Output/S" << signal_id << "_filtered_crest.dat";
-  outputFile.open(ss.str().c_str(), ios::out);
+    ss << "../Output/S" << signal_id << "_filtered_crest.dat";
+    outputFile.open(ss.str().c_str(), ios::out);
 
-  for(unsigned int i=0; i<signal_crest.size(); i++)
-  {
-    outputFile << signal_crest_time[i] << " " << signal_crest[i] << endl;
-  }
-  outputFile.close();
+    for(unsigned int i=0; i<signal_crest.size(); i++)
+    {
+        outputFile << signal_crest_time[i] << " " << signal_crest[i] << endl;
+    }
+    outputFile.close();
 }
 
 
@@ -356,82 +447,82 @@ void Signal_Analyzer::filter_signal_crest(const Signal_Analyzer& ref_sig)
 
 void Signal_Analyzer::filter_signal_trough(const Signal_Analyzer& ref_sig)
 {
-  double temp_time;
-  double temp_index;
+    double temp_time;
+    double temp_index;
 
-  //--Weeding out noisy signal troughs, by selecting the highest signal trough between two reference signal ref_sig's troughs--//
-  for(unsigned int i=0; i<ref_sig.get_trough_time_size()-1; i++)
-  {
-    vector<double> multiple_troughs_time;
-    vector<unsigned int> trough_index;
-
-    //--Collect all the signal troughs between two concurrent ref_sig troughs--//
-    for(unsigned int j=0; j<signal_trough_time.size(); j++)
+    //--Weeding out noisy signal troughs, by selecting the highest signal trough between two reference signal ref_sig's troughs--//
+    for(unsigned int i=0; i<ref_sig.get_trough_time_size()-1; i++)
     {
-      if(ref_sig.get_trough_time(i) <= signal_trough_time[j] && signal_trough_time[j] <= ref_sig.get_trough_time(i+1))
-      {
-        multiple_troughs_time.push_back(signal_trough_time[j]);
-        trough_index.push_back(j);
-      }
-      else if(signal_trough_time[j] > ref_sig.get_trough_time(i+1))
-      {
-        break;
-      }
-    }
+        vector<double> multiple_troughs_time;
+        vector<unsigned int> trough_index;
 
-    //--If there exists more than one signal trough between the current pair of adjacent ref_sig troughs,...
-    //--then sort them in descending order, based on the height of the signal trough--//
-    if(multiple_troughs_time.size()>1)
-    {
-      for(unsigned int k=0; k<trough_index.size()-1; k++)
-      {
-        if(signal_trough[trough_index[k]] <= signal_trough[trough_index[k+1]])
+        //--Collect all the signal troughs between two concurrent ref_sig troughs--//
+        for(unsigned int j=0; j<signal_trough_time.size(); j++)
         {
-          temp_time = multiple_troughs_time[k];
-          multiple_troughs_time[k] = multiple_troughs_time[k+1];
-          multiple_troughs_time[k+1] = temp_time;
-
-          temp_index = trough_index[k];
-          trough_index[k] = trough_index[k+1];
-          trough_index[k+1] = temp_index;
-        }
-      }
-
-      //--Delete all but the highest signal trough that exist between the current pair of adjacent ref_sig troughs--//
-      for(unsigned int m=0; m<trough_index.size()-1; m++)
-      {
-        for(unsigned int n=0; n<signal_trough_time.size(); n++)
-        {
-          if(signal_trough_time[n] == multiple_troughs_time[m])
-          {
-            //--Delete both the non-highest signal trough and it's time, in the respective vectors--//
-            signal_trough.erase(signal_trough.begin() + n);
-            signal_trough_time.erase(signal_trough_time.begin() + n);
-
-            if(signal_trough.size() != signal_trough_time.size())
+            if(ref_sig.get_trough_time(i) <= signal_trough_time[j] && signal_trough_time[j] <= ref_sig.get_trough_time(i+1))
             {
-              cout << endl << endl << " ERROR: SIZE OF signal_trough and signal_trough_time DO NOT MATCH." << endl;
-              exit(0);
+                multiple_troughs_time.push_back(signal_trough_time[j]);
+                trough_index.push_back(j);
             }
-            break;
-          }
+            else if(signal_trough_time[j] > ref_sig.get_trough_time(i+1))
+            {
+                break;
+            }
         }
-      }
+
+        //--If there exists more than one signal trough between the current pair of adjacent ref_sig troughs,...
+        //--then sort them in descending order, based on the height of the signal trough--//
+        if(multiple_troughs_time.size()>1)
+        {
+            for(unsigned int k=0; k<trough_index.size()-1; k++)
+            {
+                if(signal_trough[trough_index[k]] <= signal_trough[trough_index[k+1]])
+                {
+                    temp_time = multiple_troughs_time[k];
+                    multiple_troughs_time[k] = multiple_troughs_time[k+1];
+                    multiple_troughs_time[k+1] = temp_time;
+
+                    temp_index = trough_index[k];
+                    trough_index[k] = trough_index[k+1];
+                    trough_index[k+1] = temp_index;
+                }
+            }
+
+            //--Delete all but the highest signal trough that exist between the current pair of adjacent ref_sig troughs--//
+            for(unsigned int m=0; m<trough_index.size()-1; m++)
+            {
+                for(unsigned int n=0; n<signal_trough_time.size(); n++)
+                {
+                    if(signal_trough_time[n] == multiple_troughs_time[m])
+                    {
+                        //--Delete both the non-highest signal trough and it's time, in the respective vectors--//
+                        signal_trough.erase(signal_trough.begin() + n);
+                        signal_trough_time.erase(signal_trough_time.begin() + n);
+
+                        if(signal_trough.size() != signal_trough_time.size())
+                        {
+                            cout << endl << endl << " ERROR: SIZE OF signal_trough and signal_trough_time DO NOT MATCH." << endl;
+                            exit(0);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
     }
-  }
 
-  //--Save filtered trough data in file.
-  fstream outputFile;
-  stringstream ss;
+    //--Save filtered trough data in file.
+    fstream outputFile;
+    stringstream ss;
 
-  ss << "../Output/S" << signal_id << "_filtered_trough.dat";
-  outputFile.open(ss.str().c_str(), ios::out);
+    ss << "../Output/S" << signal_id << "_filtered_trough.dat";
+    outputFile.open(ss.str().c_str(), ios::out);
 
-  for(unsigned int i=0; i<signal_trough.size(); i++)
-  {
-    outputFile << signal_trough_time[i] << " " << signal_trough[i] << endl;
-  }
-  outputFile.close();
+    for(unsigned int i=0; i<signal_trough.size(); i++)
+    {
+        outputFile << signal_trough_time[i] << " " << signal_trough[i] << endl;
+    }
+    outputFile.close();
 }
 
 
@@ -524,57 +615,57 @@ double Signal_Analyzer::estimate_frequency(void) const
 
 vector<vector<double> > Signal_Analyzer::calculate_phase_crest(const Signal_Analyzer& ref_sig) const
 {
-  vector<vector<double> > phase;
-  vector<double> phase_individual(3);
+    vector<vector<double> > phase;
+    vector<double> phase_individual(3);
 
-  double period_start_time;
-  double period_end_time;
+    double period_start_time;
+    double period_end_time;
 
-  double phase_360;
-  double phase_180;
+    double phase_360;
+    double phase_180;
 
-  bool phase_flag;
+    bool phase_flag;
 
-  //--Calculating phase based on Crest values--//
-  for(unsigned int i=0; i<signal_crest_time.size(); i++)
-  {
-    phase_flag = false;
-
-    //--Search for the two reference signal ref_sig's crests, sandwitching the current signal crest--//
-    for(unsigned int j=1; j<ref_sig.get_crest_time_size(); j++)
+    //--Calculating phase based on Crest values--//
+    for(unsigned int i=0; i<signal_crest_time.size(); i++)
     {
-      if(ref_sig.get_crest_time(j-1) <= signal_crest_time[i] && signal_crest_time[i] < ref_sig.get_crest_time(j))
-      {
-        period_start_time = ref_sig.get_crest_time(j-1);
-        period_end_time = ref_sig.get_crest_time(j);
+        phase_flag = false;
 
-        phase_flag = true;
-        break;
-      }
+        //--Search for the two reference signal ref_sig's crests, sandwitching the current signal crest--//
+        for(unsigned int j=1; j<ref_sig.get_crest_time_size(); j++)
+        {
+            if(ref_sig.get_crest_time(j-1) <= signal_crest_time[i] && signal_crest_time[i] < ref_sig.get_crest_time(j))
+            {
+                period_start_time = ref_sig.get_crest_time(j-1);
+                period_end_time = ref_sig.get_crest_time(j);
+
+                phase_flag = true;
+                break;
+            }
+        }
+
+        if(phase_flag)
+        {
+            phase_360 = (signal_crest_time[i]-period_start_time)/(period_end_time-period_start_time) * 360.0;
+
+            if(phase_360 > 180.0)
+            {
+                phase_180 = phase_360-360.0;
+            }
+            else
+            {
+                phase_180 = phase_360;
+            }
+
+            phase_individual[0] = signal_crest_time[i];
+            phase_individual[1] = phase_180;
+            phase_individual[2] = phase_360;
+
+            phase.push_back(phase_individual);
+        }
     }
 
-    if(phase_flag)
-    {
-      phase_360 = (signal_crest_time[i]-period_start_time)/(period_end_time-period_start_time) * 360.0;
-
-      if(phase_360 > 180.0)
-      {
-        phase_180 = phase_360-360.0;
-      }
-      else
-      {
-        phase_180 = phase_360;
-      }
-
-      phase_individual[0] = signal_crest_time[i];
-      phase_individual[1] = phase_180;
-      phase_individual[2] = phase_360;
-
-      phase.push_back(phase_individual);
-    }
-  }
-
-  return phase;
+    return phase;
 }
 
 
@@ -585,18 +676,18 @@ vector<vector<double> > Signal_Analyzer::calculate_phase_crest(const Signal_Anal
 
 double Signal_Analyzer::get_crest_time(const unsigned int i) const
 {
-  if(i >= signal_crest_time.size())
-  {
-    cerr << "SignalAnalyzer Error: SignalAnalyzer class." << endl
-              << "double get_crest_time(const unsigned int) method" << endl
-              << i << " should be < signal_crest_time.size(): "<< signal_crest_time.size()  << endl;
+    if(i >= signal_crest_time.size())
+    {
+        cerr << "SignalAnalyzer Error: SignalAnalyzer class." << endl
+             << "double get_crest_time(const unsigned int) method" << endl
+             << i << " should be < signal_crest_time.size(): "<< signal_crest_time.size()  << endl;
 
-    exit(1);
-  }
-  else
-  {
-    return signal_crest_time[i];
-  }
+        exit(1);
+    }
+    else
+    {
+        return signal_crest_time[i];
+    }
 }
 
 
@@ -607,18 +698,18 @@ double Signal_Analyzer::get_crest_time(const unsigned int i) const
 
 double Signal_Analyzer::get_trough_time(const unsigned int i) const
 {
-  if(i >= signal_trough_time.size())
-  {
-    cerr << "SignalAnalyzer Error: SignalAnalyzer class." << endl
-              << "double get_trough_time(const unsigned int) method" << endl
-              << i << " should be < signal_trough_time.size(): "<< signal_trough_time.size()  << endl;
+    if(i >= signal_trough_time.size())
+    {
+        cerr << "SignalAnalyzer Error: SignalAnalyzer class." << endl
+             << "double get_trough_time(const unsigned int) method" << endl
+             << i << " should be < signal_trough_time.size(): "<< signal_trough_time.size()  << endl;
 
-    exit(1);
-  }
-  else
-  {
-    return signal_trough_time[i];
-  }
+        exit(1);
+    }
+    else
+    {
+        return signal_trough_time[i];
+    }
 }
 
 
@@ -628,7 +719,7 @@ double Signal_Analyzer::get_trough_time(const unsigned int i) const
 
 unsigned int Signal_Analyzer::get_crest_time_size(void) const
 {
-  return signal_crest_time.size();
+    return signal_crest_time.size();
 }
 
 
@@ -638,7 +729,7 @@ unsigned int Signal_Analyzer::get_crest_time_size(void) const
 
 unsigned int Signal_Analyzer::get_trough_time_size(void) const
 {
-  return signal_trough_time.size();
+    return signal_trough_time.size();
 }
 
 

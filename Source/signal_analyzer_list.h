@@ -23,22 +23,23 @@
 class Signal_Analyzer_List
 {
 public:
-  Signal_Analyzer_List(const char*);
-  Signal_Analyzer_List(const char*, const vector<unsigned int>&);
+    Signal_Analyzer_List(const char*);
+    Signal_Analyzer_List(const char*, const vector<unsigned int>&);
 
-  unsigned int get_num_signals(const char* const signalsFileName) const;
+    unsigned int get_num_signals(const char* const signalsFileName) const;
 
-  void filter_signal(void);
-  void show_signal_amplitudes(void);
-  void show_signal_offsets(void);
-  void calculate_phaseVector(void);
-  void show_phase_relation(void);
-  void show_signal_frequency(void);
-  void show_signal_range(void);
+    void filter_signal(void);
+    void crop_signal_length(const double, const double);
+    void show_signal_amplitudes(void);
+    void show_signal_offsets(void);
+    void calculate_phaseVector(void);
+    void show_phase_relation(void);
+    void show_signal_frequency(void);
+    void show_signal_range(void);
 
 private:
-  unsigned int no_of_signals;
-  vector<Signal_Analyzer> S;
+    unsigned int no_of_signals;
+    vector<Signal_Analyzer> S;
 
 };
 

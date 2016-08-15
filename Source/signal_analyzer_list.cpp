@@ -37,8 +37,8 @@ Signal_Analyzer_List::Signal_Analyzer_List(const char* signalsFileName)
     if(!no_of_signals)
     {
         cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << endl
-                  << "Signal_Analyzer_List(const char*) method" << endl
-                  << "No signals found on file: "<< signalsFileName  << endl;
+             << "Signal_Analyzer_List(const char*) method" << endl
+             << "No signals found on file: "<< signalsFileName  << endl;
 
         exit(1);
     }
@@ -46,8 +46,8 @@ Signal_Analyzer_List::Signal_Analyzer_List(const char* signalsFileName)
     //--Create a Signal Analyzer object per signal and add to the list--//
     for(unsigned int i=0; i<no_of_signals; i++)
     {
-      Signal_Analyzer s_an(signalsFileName, i+1);
-      S.push_back(s_an);
+        Signal_Analyzer s_an(signalsFileName, i+1);
+        S.push_back(s_an);
     }
 }
 
@@ -75,8 +75,8 @@ Signal_Analyzer_List::Signal_Analyzer_List(const char* signalsFileName, const ve
     if(!no_of_signals)
     {
         cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << endl
-                  << "Signal_Analyzer_List(const char*, , const vector<unsigned int>&) method" << endl
-                  << "No signals found on file: "<< signalsFileName  << endl;
+             << "Signal_Analyzer_List(const char*, , const vector<unsigned int>&) method" << endl
+             << "No signals found on file: "<< signalsFileName  << endl;
 
         exit(1);
     }
@@ -84,8 +84,8 @@ Signal_Analyzer_List::Signal_Analyzer_List(const char* signalsFileName, const ve
     //--Create a Signal Analyzer object per signal and add to the list--//
     for(unsigned int i=0; i<no_of_signals; i++)
     {
-      Signal_Analyzer s_an(signalsFileName, signalIDList[i]);
-      S.push_back(s_an);
+        Signal_Analyzer s_an(signalsFileName, signalIDList[i]);
+        S.push_back(s_an);
     }
 }
 
@@ -104,11 +104,11 @@ unsigned int Signal_Analyzer_List::get_num_signals(const char* const signalsFile
 
     if(!inputFile.is_open())
     {
-      cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << endl
-                << "get_num_signals(const char* const) method" << endl
-                << "Cannot open Parameter file: "<< signalsFileName  << endl;
+        cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << endl
+             << "get_num_signals(const char* const) method" << endl
+             << "Cannot open Parameter file: "<< signalsFileName  << endl;
 
-      exit(1);
+        exit(1);
     }
 
     string line;
@@ -142,7 +142,7 @@ unsigned int Signal_Analyzer_List::get_num_signals(const char* const signalsFile
 // void filter_signal(void) method
 
 /// This method filters crests and troughs of all the signals in the list.
-/// Each signal is filteres by taking as reference, all other signals in the list, once.
+/// Each signal is filteres by taking as reference, all other signals in the list.
 /// So each signal is filtered n-1 times, where n is the total number of signals.
 
 void Signal_Analyzer_List::filter_signal()
@@ -163,11 +163,44 @@ void Signal_Analyzer_List::filter_signal()
         }
     }
 
-    //--Show the number of Crests and Troughs found, for each signal, after filtering--/
+    //--Show the number of Crests and Troughs found, for each signal, after filtering--//
     for(unsigned int i=0; i<no_of_signals; i++)
     {
         cout << "Signal_" << S[i].get_signal_id() << ": No. of Crests found = " << S[i].get_crest_time_size()
-                  << "   No. of Trough found = " << S[i].get_trough_time_size() << endl;
+             << "   No. of Trough found = " << S[i].get_trough_time_size() << endl;
+    }
+}
+
+
+// void crop_signal_length(const double, const double) method
+
+/// This method crops all signals in the list, by removing all crests and troughs outside the limit [lower_limit:upper_limit].
+/// @param lower_limit Time value below which signals need to be cropped.
+/// @param upper_limit Time value above which signals need to be cropped.
+
+void Signal_Analyzer_List::crop_signal_length(const double lower_limit, const double upper_limit)
+{
+    if(no_of_signals == 0)
+    {
+        cerr << "SignalAnalyzer Error: SignalAnalyzerList class." << endl
+             << "void crop_signal_length(const double, const double) method" << endl
+             << "Signals List is empty" << endl;
+
+        exit(1);
+    }
+
+    cout << endl << "Cropping signals beyond the range [" << lower_limit << ":" << upper_limit << "]" << endl;
+
+    for(unsigned int i=0; i<no_of_signals; i++)
+    {
+        S[i].crop_length(lower_limit, upper_limit);
+    }
+
+    //--Show the number of Crests and Troughs, for each signal, after cropping--//
+    for(unsigned int i=0; i<no_of_signals; i++)
+    {
+        cout << "Signal_" << S[i].get_signal_id() << ": No. of Crests found = " << S[i].get_crest_time_size()
+             << "   No. of Trough found = " << S[i].get_trough_time_size() << endl;
     }
 }
 
@@ -218,7 +251,8 @@ void Signal_Analyzer_List::calculate_phaseVector(void)
     {
         for(unsigned int j=i+1; j<no_of_signals; j++)
         {
-            phase.push_back(S[i].calculate_phase_crest(S[j]));
+            //phase.push_back(S[i].calculate_phase_crest(S[j]));
+            phase.push_back(S[i].calculate_phase_trough(S[j]));
         }
     }
 
@@ -297,7 +331,7 @@ void Signal_Analyzer_List::show_phase_relation(void)
             avg_phase_diff = accumulate(phaseRelation.begin(), phaseRelation.end(), 0.0)/phaseRelation.size();
 
             cout << "Signal_" << S[i].get_signal_id() << " AND Signal_"
-                      << S[j].get_signal_id() << ": " << avg_phase_diff << "°" << endl;
+                 << S[j].get_signal_id() << ": " << avg_phase_diff << "°" << endl;
         }
     }
 

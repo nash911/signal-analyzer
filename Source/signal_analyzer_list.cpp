@@ -233,12 +233,13 @@ void Signal_Analyzer_List::show_signal_offsets(void)
 }
 
 
-// void calculate_phaseVector(void) method
+// void calculate_phaseVector_crest(void) method
 
 /// Esimates phase difference between all pairs of signals on the list, as a vector,
-/// and then stores the same on a plottable file.
+/// and then stores the same on a plottable file. Calculate the phase difference based
+/// on signal crest values.
 
-void Signal_Analyzer_List::calculate_phaseVector(void)
+void Signal_Analyzer_List::calculate_phaseVector_crest(void)
 {
     vector<vector<vector<double> > > phase;
     vector<double> time;
@@ -251,7 +252,76 @@ void Signal_Analyzer_List::calculate_phaseVector(void)
     {
         for(unsigned int j=i+1; j<no_of_signals; j++)
         {
-            //phase.push_back(S[i].calculate_phase_crest(S[j]));
+            phase.push_back(S[i].calculate_phase_crest(S[j]));
+        }
+    }
+
+    phaseFile_180.open("../Output/phase180.dat", ios::out);
+    phaseFile_360.open("../Output/phase360.dat", ios::out);
+
+    //--Accumulate all unique time values from all the phase vectors.
+    for(unsigned int i=0; i<phase.size(); i++)
+    {
+        for(unsigned int j=0; j<phase[i].size(); j++)
+        {
+            if(find(time.begin(), time.end(), phase[i][j][0])==time.end())
+            {
+                time.push_back(phase[i][j][0]);
+            }
+        }
+    }
+
+    //--Sort the time vector in accending order.
+    sort(time.begin(), time.end());
+
+    //--Search the phase vectors and store the phase value closest to each time value, in phase graph file.
+    for(unsigned int n=0; n<time.size(); n++)
+    {
+        phaseFile_180 << time[n];
+        phaseFile_360 << time[n];
+
+        for(unsigned int i=0; i<phase.size(); i++)
+        {
+            for(unsigned int j=0; j<phase[i].size(); j++)
+            {
+                if(phase[i][j][0] >= time[n])
+                {
+                    phaseFile_180 << " " << phase[i][j][1];
+                    phaseFile_360 << " " << phase[i][j][2];
+
+                    break;
+                }
+            }
+        }
+
+        phaseFile_180 << endl;
+        phaseFile_360 << endl;
+    }
+
+    phaseFile_180.close();
+    phaseFile_360.close();
+}
+
+
+// void calculate_phaseVector_trough(void) method
+
+/// Esimates phase difference between all pairs of signals on the list, as a vector,
+/// and then stores the same on a plottable file. Calculate the phase difference based
+/// on signal trough values.
+
+void Signal_Analyzer_List::calculate_phaseVector_trough(void)
+{
+    vector<vector<vector<double> > > phase;
+    vector<double> time;
+
+    fstream phaseFile_180;
+    fstream phaseFile_360;
+
+    //--Calculate phase difference between signals, for every pair of signals.
+    for(unsigned int i=0; i<no_of_signals-1; i++)
+    {
+        for(unsigned int j=i+1; j<no_of_signals; j++)
+        {
             phase.push_back(S[i].calculate_phase_trough(S[j]));
         }
     }
@@ -303,16 +373,16 @@ void Signal_Analyzer_List::calculate_phaseVector(void)
 }
 
 
-
-// void show_signal_phase_relation(void) method
+// void show_signal_phase_relation_crest(void) method
 
 /// Estimates and displays average phase difference between all pairs of signals on the list.
+/// Calculate the phase difference based on signal crest values.
 
-void Signal_Analyzer_List::show_phase_relation(void)
+void Signal_Analyzer_List::show_phase_relation_crest(void)
 {
     double avg_phase_diff;
 
-    cout << endl << "         Phase difference between pairs of signals (-180°, 180°]" << endl;
+    cout << endl << "         Crest based phase difference between pairs of signals (-180°, 180°]" << endl;
 
     //--Calculate phase difference between signals, for every pair of signals.
     for(unsigned int i=0; i<no_of_signals-1; i++)
@@ -323,6 +393,41 @@ void Signal_Analyzer_List::show_phase_relation(void)
             vector<double> phaseRelation;
 
             phaseVector = S[i].calculate_phase_crest(S[j]);
+
+            for(unsigned int k=0; k<phaseVector.size(); k++)
+            {
+                phaseRelation.push_back(phaseVector[k][1]);
+            }
+            avg_phase_diff = accumulate(phaseRelation.begin(), phaseRelation.end(), 0.0)/phaseRelation.size();
+
+            cout << "Signal_" << S[i].get_signal_id() << " AND Signal_"
+                 << S[j].get_signal_id() << ": " << avg_phase_diff << "°" << endl;
+        }
+    }
+
+}
+
+
+// void show_signal_phase_relation_trough(void) method
+
+/// Estimates and displays average phase difference between all pairs of signals on the list.
+/// Calculate the phase difference based on signal trough values.
+
+void Signal_Analyzer_List::show_phase_relation_trough(void)
+{
+    double avg_phase_diff;
+
+    cout << endl << "         Trough based phase difference between pairs of signals (-180°, 180°]" << endl;
+
+    //--Calculate phase difference between signals, for every pair of signals.
+    for(unsigned int i=0; i<no_of_signals-1; i++)
+    {
+        for(unsigned int j=i+1; j<no_of_signals; j++)
+        {
+            vector<vector<double> > phaseVector;
+            vector<double> phaseRelation;
+
+            phaseVector = S[i].calculate_phase_trough(S[j]);
 
             for(unsigned int k=0; k<phaseVector.size(); k++)
             {

@@ -604,7 +604,7 @@ double Signal_Analyzer::estimate_frequency(void) const
 
 // vector<vector<double> > calculate_phase_crest(const Signal_Analyzer&) method
 
-/// This method returns the phase difference between the signal and the reference signal.
+/// This method returns the phase difference between the signal and the reference signal, calculated based on signal crests.
 /// The format is a nx3 Matrix (2D Vector).
 /// <ul>
 /// <li> Time.
@@ -658,6 +658,73 @@ vector<vector<double> > Signal_Analyzer::calculate_phase_crest(const Signal_Anal
             }
 
             phase_individual[0] = signal_crest_time[i];
+            phase_individual[1] = phase_180;
+            phase_individual[2] = phase_360;
+
+            phase.push_back(phase_individual);
+        }
+    }
+
+    return phase;
+}
+
+
+// vector<vector<double> > calculate_phase_trough(const Signal_Analyzer&) method
+
+/// This method returns the phase difference between the signal and the reference signal, calculated based on signal troughs.
+/// The format is a nx3 Matrix (2D Vector).
+/// <ul>
+/// <li> Time.
+/// <li> Phase difference in the range of [0°,360°).
+/// <li> Phase difference in the range of (-180°,180°].
+/// </ul>
+/// @param ref_sig A SignalAnalyzer object used as reference to calculate the signal's phase W.R.T the reference signal.
+
+vector<vector<double> > Signal_Analyzer::calculate_phase_trough(const Signal_Analyzer& ref_sig) const
+{
+    vector<vector<double> > phase;
+    vector<double> phase_individual(3);
+
+    double period_start_time;
+    double period_end_time;
+
+    double phase_360;
+    double phase_180;
+
+    bool phase_flag;
+
+    //--Calculating phase based on Trough values--//
+    for(unsigned int i=0; i<signal_trough_time.size(); i++)
+    {
+        phase_flag = false;
+
+        //--Search for the two reference signal ref_sig's troughs, sandwitching the current signal trough--//
+        for(unsigned int j=1; j<ref_sig.get_trough_time_size(); j++)
+        {
+            if(ref_sig.get_trough_time(j-1) <= signal_trough_time[i] && signal_trough_time[i] < ref_sig.get_trough_time(j))
+            {
+                period_start_time = ref_sig.get_trough_time(j-1);
+                period_end_time = ref_sig.get_trough_time(j);
+
+                phase_flag = true;
+                break;
+            }
+        }
+
+        if(phase_flag)
+        {
+            phase_360 = (signal_trough_time[i]-period_start_time)/(period_end_time-period_start_time) * 360.0;
+
+            if(phase_360 > 180.0)
+            {
+                phase_180 = phase_360-360.0;
+            }
+            else
+            {
+                phase_180 = phase_360;
+            }
+
+            phase_individual[0] = signal_trough_time[i];
             phase_individual[1] = phase_180;
             phase_individual[2] = phase_360;
 

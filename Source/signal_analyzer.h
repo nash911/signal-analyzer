@@ -51,6 +51,7 @@ public:
     double estimate_offset(void) const;
     double estimate_frequency(void) const;
     vector<vector<double> > calculate_phase_crest(const Signal_Analyzer&) const;
+    vector<vector<double> > calculate_phase_trough(const Signal_Analyzer&) const;
 
     double get_crest_time(const unsigned int) const;
     double get_trough_time(const unsigned int) const;

@@ -32,8 +32,10 @@ public:
     void crop_signal_length(const double, const double);
     void show_signal_amplitudes(void);
     void show_signal_offsets(void);
-    void calculate_phaseVector(void);
-    void show_phase_relation(void);
+    void calculate_phaseVector_crest(void);
+    void calculate_phaseVector_trough(void);
+    void show_phase_relation_crest(void);
+    void show_phase_relation_trough(void);
     void show_signal_frequency(void);
     void show_signal_range(void);
 

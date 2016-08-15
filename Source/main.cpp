@@ -28,8 +28,9 @@ int main(int argc, char* argv[])
     sList.show_signal_amplitudes();
     sList.show_signal_offsets();
     sList.show_signal_range();
-    sList.calculate_phaseVector();
-    sList.show_phase_relation();
+    sList.calculate_phaseVector_trough();
+    sList.show_phase_relation_crest();
+    sList.show_phase_relation_trough();
     sList.show_signal_frequency();
 
     return 0;

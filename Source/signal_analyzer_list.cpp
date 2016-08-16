@@ -454,7 +454,7 @@ void Signal_Analyzer_List::show_signal_frequency(void)
 
     for(unsigned int i=0; i<no_of_signals; i++)
     {
-        frequency.push_back(S[i].estimate_frequency());
+        frequency.push_back(S[i].estimate_frequency_trough());
     }
     avg_freq = accumulate(frequency.begin(), frequency.end(), 0.0)/frequency.size();
 

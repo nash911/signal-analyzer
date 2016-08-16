@@ -602,6 +602,58 @@ double Signal_Analyzer::estimate_frequency(void) const
 }
 
 
+// double estimate_frequency_crest(void) method
+
+/// This method returns an estimate of the average frequency of the signal.
+/// It does so by first estimating the period between every concurrent pair of crests.
+/// Frequency = 1.0/Period
+/// Finally returns average of the calculated frequencies.
+
+double Signal_Analyzer::estimate_frequency_crest(void) const
+{
+    vector<double> freqVec;
+    double period;
+    double freq_avg;
+
+    //--Estimate frequenct based on crests--//
+    for(unsigned int i=1; i<signal_crest_time.size(); i++)
+    {
+        //--frequency = 1.0/period--//
+        period = signal_crest_time[i] - signal_crest_time[i-1];
+        freqVec.push_back(1.0/period);
+    }
+
+    freq_avg = accumulate(freqVec.begin(), freqVec.end(), 0.0)/freqVec.size();
+    return (freq_avg);
+}
+
+
+// double estimate_frequency_trough(void) method
+
+/// This method returns an estimate of the average frequency of the signal.
+/// It does so by first estimating the period between every concurrent pair of troughs.
+/// Frequency = 1.0/Period
+/// Finally returns average of the calculated frequencies.
+
+double Signal_Analyzer::estimate_frequency_trough(void) const
+{
+    vector<double> freqVec;
+    double period;
+    double freq_avg;
+
+    //--Estimate frequenct based on trough--//
+    for(unsigned int i=1; i<signal_trough_time.size(); i++)
+    {
+        //--frequency = 1.0/period--//
+        period = signal_trough_time[i] - signal_trough_time[i-1];
+        freqVec.push_back(1.0/period);
+    }
+
+    freq_avg = accumulate(freqVec.begin(), freqVec.end(), 0.0)/freqVec.size();
+    return (freq_avg);
+}
+
+
 // vector<vector<double> > calculate_phase_crest(const Signal_Analyzer&) method
 
 /// This method returns the phase difference between the signal and the reference signal, calculated based on signal crests.

@@ -49,7 +49,11 @@ public:
 
     double estimate_amplitude(void) const;
     double estimate_offset(void) const;
+
     double estimate_frequency(void) const;
+    double estimate_frequency_crest(void) const;
+    double estimate_frequency_trough(void) const;
+
     vector<vector<double> > calculate_phase_crest(const Signal_Analyzer&) const;
     vector<vector<double> > calculate_phase_trough(const Signal_Analyzer&) const;
 
